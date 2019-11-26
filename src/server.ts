@@ -39,11 +39,19 @@ app.get('/metrics/', (req: any, res: any) => {
   })
 })
 
-app.get('/metrics/one', (req: any, res: any) => {
+app.get('/metrics/:name', (req: any, res: any) => {
   dbMet.get1(
-    (err: Error | null , result: any) => {
+    req.params.name,(err: Error | null , result: any) => {
     if (err) throw err
     res.status(200).send(result)
+  })
+})
+
+app.delete('/metrics/:name', (req: any, res: any) => {
+  dbMet.delete(
+    req.params.name, req.body, (err: Error | null) => {
+    if (err) throw err
+    res.status(200).send('ok')
   })
 })
 

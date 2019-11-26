@@ -34,7 +34,8 @@ export class MetricsHandler {
       let metrics: Metric[] = []
     this.db.createReadStream()
   .on('data', function (data) {
-    let timestamp: string = data.key.split(':')[2]
+    let check: string = data.key.split(':')[1]
+    let timestamp: string = data.key.split(':')[1]
     let metric : Metric = new Metric(timestamp,data.value)
     metrics.push(metric)
   })
@@ -49,6 +50,41 @@ export class MetricsHandler {
     callback(null, metrics)
     console.log('Stream ended')
   })
+  }
+
+  public get1( id, callback: (error: Error | null , result: any | null) => void) {
+      let metrics: Metric[] = []
+    this.db.createReadStream()
+  .on('data', function (data) {
+    let check: string = data.key.split(':')[1]
+    if (id==check){
+      let timestamp: string = data.key.split(':')[2]
+      let metric : Metric = new Metric(timestamp,data.value)
+      metrics.push(metric)
+    }
+    
+  })
+  .on('error', function (err) {
+    console.log('Oh my!', err)
+    callback(err, null)
+  })
+  .on('close', function () {
+    console.log('Stream closed')
+  })
+  .on('end', function () {
+    callback(null, metrics)
+    console.log('Stream ended')
+  })
+  }
+
+  public delete(key: number, metrics: Metric[], callback: (error: Error | null) => void) {
+    const stream = WriteStream(this.db,{type: 'del'})
+    stream.on('error', callback)
+    stream.on('close', callback)
+    metrics.forEach((m: Metric) => {
+      stream.write({ key: `metric:${key}:${m.timestamp}`, value: m.value })
+    })
+    stream.end()
   }
 
 }
